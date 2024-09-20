@@ -34,3 +34,27 @@ export const loadOneAPIChatModels = async () => {
     return {};
   }
 };
+
+export const loadOneAPIEmbeddingsModels = async () => {
+  const oneApiKey = getOneApiKey();
+  const oneApiEndpoint = getOneApiEndpoint();
+
+  if (!oneApiKey || !oneApiEndpoint) return {};
+
+  try {
+    const embeddingModels = {
+      'Doubao-embedding': new OpenAIEmbeddings({
+        openAIApiKey: oneApiKey,
+        configuration: {
+          baseURL: oneApiEndpoint,
+        },
+        modelName: 'Doubao-embedding',
+      }),
+    };
+
+    return embeddingModels;
+  } catch (err) {
+    logger.error(`加载OneAPI嵌入模型时出错: ${err}`);
+    return {};
+  }
+};
