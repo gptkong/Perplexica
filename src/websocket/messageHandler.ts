@@ -103,12 +103,14 @@ export const handleMessage = async (
   embeddings: Embeddings,
 ) => {
   try {
+    logger.debug('MH-1: 开始处理消息');
     const parsedWSMessage = JSON.parse(message) as WSMessage;
     const parsedMessage = parsedWSMessage.message;
 
     const id = crypto.randomBytes(7).toString('hex');
 
-    if (!parsedMessage.content)
+    if (!parsedMessage.content) {
+      logger.warn('MH-2: 无效的消息格式');
       return ws.send(
         JSON.stringify({
           type: 'error',
@@ -116,7 +118,9 @@ export const handleMessage = async (
           key: 'INVALID_FORMAT',
         }),
       );
+    }
 
+    logger.debug('MH-3: 处理消息历史');
     const history: BaseMessage[] = parsedWSMessage.history.map((msg) => {
       if (msg[0] === 'human') {
         return new HumanMessage({
@@ -130,9 +134,11 @@ export const handleMessage = async (
     });
 
     if (parsedWSMessage.type === 'message') {
+      logger.debug('MH-4: 处理消息类型');
       const handler = searchHandlers[parsedWSMessage.focusMode];
 
       if (handler) {
+        logger.debug('MH-5: 调用处理程序');
         const emitter = handler(
           parsedMessage.content,
           history,
@@ -142,6 +148,7 @@ export const handleMessage = async (
 
         handleEmitterEvents(emitter, ws, id, parsedMessage.chatId);
 
+        logger.debug('MH-6: 更新数据库');
         const chat = await db.query.chats.findFirst({
           where: eq(chats.id, parsedMessage.chatId),
         });
@@ -171,6 +178,7 @@ export const handleMessage = async (
           })
           .execute();
       } else {
+        logger.warn('MH-7: 无效的焦点模式');
         ws.send(
           JSON.stringify({
             type: 'error',
@@ -181,6 +189,7 @@ export const handleMessage = async (
       }
     }
   } catch (err) {
+    logger.error(`MH-ERR: 消息处理错误: ${err}`);
     ws.send(
       JSON.stringify({
         type: 'error',
@@ -188,6 +197,5 @@ export const handleMessage = async (
         key: 'INVALID_FORMAT',
       }),
     );
-    logger.error(`Failed to handle message: ${err}`);
   }
 };

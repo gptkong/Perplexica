@@ -15,9 +15,11 @@ export const handleConnection = async (
   request: IncomingMessage,
 ) => {
   try {
+    logger.debug('CM-1: 开始处理WebSocket连接');
     const searchParams = new URL(request.url, `http://${request.headers.host}`)
       .searchParams;
 
+    logger.debug('CM-2: 获取模型提供者');
     const [chatModelProviders, embeddingModelProviders] = await Promise.all([
       getAvailableChatModelProviders(),
       getAvailableEmbeddingModelProviders(),
@@ -40,6 +42,7 @@ export const handleConnection = async (
     let llm: BaseChatModel | undefined;
     let embeddings: Embeddings | undefined;
 
+    logger.debug('CM-3: 初始化LLM和嵌入模型');
     if (
       chatModelProviders[chatModelProvider] &&
       chatModelProviders[chatModelProvider][chatModel] &&
@@ -79,14 +82,16 @@ export const handleConnection = async (
       ws.close();
     }
 
+    logger.debug('CM-4: 设置WebSocket事件监听器');
     ws.on(
       'message',
       async (message) =>
         await handleMessage(message.toString(), ws, llm, embeddings),
     );
 
-    ws.on('close', () => logger.debug('Connection closed'));
+    ws.on('close', () => logger.debug('CM-5: 连接关闭'));
   } catch (err) {
+    logger.error(`CM-ERR: WebSocket连接处理错误: ${err}`);
     ws.send(
       JSON.stringify({
         type: 'error',
@@ -95,6 +100,5 @@ export const handleConnection = async (
       }),
     );
     ws.close();
-    logger.error(err);
   }
 };

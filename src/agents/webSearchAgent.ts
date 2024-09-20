@@ -362,11 +362,13 @@ const basicWebSearch = (
   const emitter = new eventEmitter();
 
   try {
+    logger.debug('WS-1: 开始Web搜索');
     const basicWebSearchAnsweringChain = createBasicWebSearchAnsweringChain(
       llm,
       embeddings,
     );
 
+    logger.debug('WS-2: 创建流式事件');
     const stream = basicWebSearchAnsweringChain.streamEvents(
       {
         chat_history: history,
@@ -377,13 +379,14 @@ const basicWebSearch = (
       },
     );
 
+    logger.debug('WS-3: 处理流');
     handleStream(stream, emitter);
   } catch (err) {
+    logger.error(`WS-ERR: Web搜索错误: ${err}`);
     emitter.emit(
       'error',
       JSON.stringify({ data: 'An error has occurred please try again later' }),
     );
-    logger.error(`Error in websearch: ${err}`);
   }
 
   return emitter;
@@ -395,6 +398,7 @@ const handleWebSearch = (
   llm: BaseChatModel,
   embeddings: Embeddings,
 ) => {
+  logger.debug('WS-4: 处理Web搜索请求');
   const emitter = basicWebSearch(message, history, llm, embeddings);
   return emitter;
 };
