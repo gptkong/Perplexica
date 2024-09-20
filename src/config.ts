@@ -13,10 +13,12 @@ interface Config {
     OPENAI: string;
     GROQ: string;
     ANTHROPIC: string;
+    ONEAPI: string;
   };
   API_ENDPOINTS: {
     SEARXNG: string;
     OLLAMA: string;
+    ONEAPI: string;
   };
 }
 
@@ -35,6 +37,10 @@ export const getSimilarityMeasure = () =>
   loadConfig().GENERAL.SIMILARITY_MEASURE;
 
 export const getOpenaiApiKey = () => loadConfig().API_KEYS.OPENAI;
+
+export const getOneApiKey = () => loadConfig().API_KEYS.ONEAPI;
+
+export const getOneApiEndpoint = () => loadConfig().API_ENDPOINTS.ONEAPI;
 
 export const getGroqApiKey = () => loadConfig().API_KEYS.GROQ;
 
